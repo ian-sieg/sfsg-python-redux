@@ -1,10 +1,15 @@
 import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+
 import logo from './logo.svg';
 import { Counter } from './features/counter/Counter';
 import './App.css';
 
+
 import Home from './components/Home'
-import Navbar from './components/Navbar';
+import Navbar from './components/Navbar'
+import Login from './components/Login';
+import Register from './components/Register';
 
 function App() {
   return (
@@ -56,10 +61,14 @@ function App() {
           </span>
         </header>
       </div>
-      <div>
+      <Router>
         <Navbar />
-        <Home />
-      </div>
+          <Routes>
+            <Route path='/' element={<Home/>} />
+            <Route path='/login' element={<Login/>} />
+            <Route path='/register' element={<Register/>} />
+          </Routes>
+        </Router>
     </>
   );
 }

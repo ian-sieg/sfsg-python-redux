@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 import re
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sfsg.db"
+CORS(app)
 
 # DB
 db = SQLAlchemy(app)
@@ -100,9 +102,12 @@ def login():
         if (email and password):
             users = getUsers()
             # Check if user exists
-            return jsonify(len(list(filter(lambda x: x["email"] == email and x["password"] == password, users))) == 1)
+            if (len(list(filter(lambda x: x["email"] == email and x["password"] == password, users))) == 1):
+                return jsonify(True)
+            else:
+                return jsonify({"error": "No user with that email"})
         else:
-            return jsonify({"error": "Invalid form"})
+            return jsonify({"error": "No user with that email"})
     except:
         return jsonify({"error": "Invalid form"})
 
@@ -116,10 +121,10 @@ def register():
         # Check to see if user already exists
         users = getUsers()
         if(len(list(filter(lambda x: x["email"] == email, users))) == 1):
-            return jsonify({"error": "Invalid form"})
+            return jsonify({"error": "A user already exists with that email"})
         # Email validation check
         if not re.match(r"[\w\._]{4,}@\w{3,}.\w{2,4}", email):
-            return jsonify({"error": "Invalid form"})
+            return jsonify({"error": "Please enter a valid email"})
         addUser(username, email, password)
         return jsonify({"success": True})
     except:

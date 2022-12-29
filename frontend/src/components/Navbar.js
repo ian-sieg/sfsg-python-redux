@@ -7,10 +7,10 @@ export default function Navbar() {
                 Quickr
             </a>
             <div style={{ float: "right" }}>
-                <a className="w3-bar-item w3-button" href="/">
+                <a className="w3-bar-item w3-button" href="/login">
                     Login
                 </a>
-                <a className="w3-bar-item w3-button" href="/">
+                <a className="w3-bar-item w3-button" href="/register">
                     Register
                 </a>
             </div>
