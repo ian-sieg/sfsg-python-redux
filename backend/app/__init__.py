@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from .routes import api
 from .db import init_db
 from dotenv import load_dotenv
@@ -13,6 +14,8 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=secret
     )
+    
+    CORS(app)
     
     app.register_blueprint(api)
     

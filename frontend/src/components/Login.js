@@ -18,7 +18,7 @@ export default function Login () {
             },
             body: JSON.stringify({
                 email: formData.email,
-                pwd: formData.password,
+                password: formData.password,
             })
         })
             .then((res) => res.json())

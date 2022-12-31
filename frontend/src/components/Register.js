@@ -21,7 +21,7 @@ function Register() {
             body: JSON.stringify({
                 email: formData.email,
                 username: formData.username,
-                pwd: formData.password,
+                password: formData.password,
             })
         })
             .then((res) => res.json())

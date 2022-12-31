@@ -35,49 +35,28 @@ def login():
     data = request.get_json()
     
     if not data or not data['email'] or not data['password']:
-        return make_response(
-            # login issue is here first
-            'Could not verify 1',
-            401,
-            {'WWW-Authenticate': 'Basic realm = "Login required"'}
-        )
-    user = db.query(User)\
-        .filter_by(email = data['email'])\
-        .first()
+        return jsonify(message = 'Please provide your email and password'), 401
     
-    if not user:
-        return make_response(
-            'Could not verify 2',
-            401,
-            {'WWW-Authenticate': 'Basic realm = "User does not exist"'}
-        )
-    
-    # if check_password_hash(user.password, data['password']):
-    #     token = jwt.encode(
-    #         payload = {
-    #             'public_id': user.public_id,
-    #             'exp': datetime.now() + timedelta(minutes=120)
-    #         }, 
-    #         key = secret,
-    #     )
-    #     print('HIIIIIIIIIIIII')
-    #     print(jwt.decode(token, key=secret, algorithms=['HS256', ]))
-    #     print('BYYEEEEEEEEEE')
-    #     # decoded = jwt.decode(token, key=secret, )
-    #     return make_response(jsonify({'token': token.decode('UTF-8')}), 201)
-    
-    return make_response(
-        'Could not verify 3',
-        403,
-        {'WWW-Authenticate' : 'Basic realm ="Wrong Password"'}
-    )
+    try:
+        user = db.query(User).filter(User.email == data['email']).one()
+    except:
+        print(sys.exc_info())
+        return jsonify(message = 'There is no account with that email. Please signup to continue'), 401
 
-@bp.route('/signup', methods = ['POST'])
+    if user.verify_password(data['password']) == False:
+        return jsonify(message = 'Incorrect password'), 403
+    
+    session.clear()
+    session['user_id'] = user.public_id
+    session['loggedIn'] = True
+    
+    return jsonify(message = 'You have been logged in!'), 201
+
+@bp.route('/register', methods = ['POST'])
 def signup():
     data = request.get_json()
     db = get_db()
     
-    public_id = str(uuid.uuid4())
     username = data['username']
     email = data['email']
     password = data['password']
@@ -89,7 +68,7 @@ def signup():
     if not user:
         try:
             newUser = User(
-                public_id=public_id,
+                public_id=str(uuid.uuid4()),
                 username=username,
                 email=email,
                 password=password
