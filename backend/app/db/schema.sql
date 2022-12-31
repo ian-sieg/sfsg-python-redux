@@ -1,0 +1,3 @@
+DROP DATABASE IF EXISTS sfsg_db;
+
+CREATE DATABASE sfsg_db;
