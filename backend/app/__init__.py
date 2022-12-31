@@ -7,10 +7,12 @@ from os import getenv
 
 load_dotenv()
 secret = getenv('SECRET_KEY')
+# test_config=None
 
-def create_app(test_config=None):
+def create_app():
     app = Flask(__name__, static_folder='../../frontend/build', static_url_path='/')
     app.url_map.strict_slashes = False
+
     app.config.from_mapping(
         SECRET_KEY=secret
     )
@@ -24,7 +26,8 @@ def create_app(test_config=None):
         return app.send_static_file('index.html')
     
     init_db(app)
+    print(app.debug)
     return app
 
 # if __name__ == "__main__":
-#         app.run(debug = True)
+#     app.run(debug=True)
