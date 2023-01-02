@@ -1,7 +1,7 @@
 import React, {useState} from "react"
 import Alert from "./Alert"
 
-function Register() {
+export default function Register() {
     const [formData, setFormData] = useState({
         email: '',
         username: '',
@@ -88,5 +88,3 @@ function Register() {
         </div>
     );
 }
-
-export default Register

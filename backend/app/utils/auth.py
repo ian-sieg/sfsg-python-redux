@@ -7,5 +7,5 @@ def login_required(func):
         if session.get('loggedIn') == True:
             return func(*args, **kwargs)
         # might have to change this given we're not serving up templates anymore
-        return redirect('/login')
+        return redirect('/home')
     return wrapped_function

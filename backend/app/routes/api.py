@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, make_response, session
 from app.models import User
 from app.db import get_db
 from datetime import datetime, timedelta
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import uuid
 import sys
 
@@ -33,24 +34,44 @@ def get_users():
 def login():
     db = get_db()
     data = request.get_json()
-    
-    if not data or not data['email'] or not data['password']:
-        return jsonify(message = 'Please provide your email and password'), 401
-    
+    email = data['email']
+    password = data['password']
     try:
-        user = db.query(User).filter(User.email == data['email']).one()
-    except:
-        print(sys.exc_info())
-        return jsonify(message = 'There is no account with that email. Please signup to continue'), 401
+        if (email and password):
+            user = db.query(User).filter(User.email == data['email']).first()
+            if user:
+                if user.verify_password(password):
+                    token = create_access_token(identity=user.public_id)
+                    return jsonify({'token': token}), 201
+                else:
+                    return jsonify({'error': 'Password is incorrect, please try again'})
+            else:
+                return jsonify({'error': 'There is no account with that email. Please signup to continue'}), 401
+        else:
+            return jsonify({'error': 'Please provide an email and password'}), 401
+    except Exception as e:
+        print (e)
+        return jsonify({'error': 'Invalid form'})
+    
+    # if not data or not data['email'] or not data['password']:
+    #     return jsonify(message = 'Please provide your email and password'), 401
+    
+    # try:
+    #     user = db.query(User).filter(User.email == data['email']).one()
+    # except:
+    #     print(sys.exc_info())
+    #     return jsonify(message = 'There is no account with that email. Please signup to continue'), 401
 
-    if user.verify_password(data['password']) == False:
-        return jsonify(message = 'Incorrect password'), 403
+    # if user.verify_password(data['password']) == False:
+    #     return jsonify(message = 'Incorrect password'), 403
+    # else:
+    #     token = create_access_token(identity=user["id"])
+    #     return jsonify({"token": token})
+    # session.clear()
+    # session['user_id'] = user.public_id
+    # session['loggedIn'] = True
     
-    session.clear()
-    session['user_id'] = user.public_id
-    session['loggedIn'] = True
-    
-    return jsonify(message = 'You have been logged in!'), 201
+    # return jsonify(message = 'You have been logged in!'), 201
 
 @bp.route('/register', methods = ['POST'])
 def signup():
@@ -73,9 +94,6 @@ def signup():
                 email=email,
                 password=password
             )
-            print('HIIIIII')
-            print(newUser)
-            print('BYEEEEE')
             db.add(newUser)
             db.commit()
         
