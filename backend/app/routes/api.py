@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import uuid
 import sys
-from app.utils.helpers import get_user
+from app.utils.helpers import get_user, get_user_posts
 
 # from app.models.User import token_required
 from dotenv import load_dotenv
@@ -26,7 +26,8 @@ def get_users():
         output.append({
             'id': user.id,
             'username': user.username,
-            'email': user.email
+            'email': user.email,
+            'posts': get_user_posts(user.id)
         })
     
     return jsonify({'users': output})
@@ -122,7 +123,7 @@ def get_posts():
             'user': get_user(i.user_id)
     } for i in posts]
 
-@bp.route('/new-post', methods=['POST'])
+@bp.route('/post/new', methods=['POST'])
 def new_post():
     data = request.get_json()
     db = get_db()
@@ -135,9 +136,9 @@ def new_post():
         try:
             user = list(filter(lambda i: i.id == user_id, db.query(User).all()))[0]
             post = Post(
-                title = title,
-                content = content,
-                user = user
+                title,
+                content,
+                user
             )
             db.add(post)
             db.commit()
@@ -147,3 +148,44 @@ def new_post():
             return jsonify({'error': 'Invalid form'})
     else:
         return jsonify({'error': 'Please include both a title and content'})
+
+@bp.route('/post/<id>', methods=['PUT', 'DELETE'])
+def POSTS(id):
+    method = request.method
+    db = get_db()
+    
+    if (method == 'DELETE'):
+        try:
+            post = db.query(Post).filter(Post.id == id).one()
+            db.delete(post)
+            db.commit()
+            return jsonify({'success': True})
+        except Exception as e:
+            print (e)
+            return jsonify({'error': False})
+    
+    elif(method == 'PUT'):
+        try:
+            post = db.query(Post).filter(Post.id == id).one()
+            if post:
+                data = request.get_json()
+
+                title = data['title']
+                content = data['content']
+                user_id = data['user_id']
+                user = list(filter(lambda i: i.id == user_id, db.query(User).all()))[0]
+                
+                post = Post(
+                    id,
+                    title,
+                    content,
+                    user
+                )
+                db.add(post)
+                db.commit()
+                return jsonify({'success': 'true'})
+            else:
+                return jsonify({'error': 'No post with this id'})
+        except Exception as e:
+            print(e)
+            return jsonify({'error': 'Invalid form'})

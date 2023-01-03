@@ -12,6 +12,7 @@ class User(Base):
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(110), nullable=False)
     posts = relationship('Post', back_populates='user')
+    
     @validates('email')
     def validate_email(self, key, email):
         assert '@' in email

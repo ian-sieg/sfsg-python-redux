@@ -1,7 +1,7 @@
 from datetime import datetime
 from app.db import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, select, func
-from sqlalchemy.orm import relationship, column_property, Mapped
+from sqlalchemy.orm import relationship, column_property
 from .User import User
 from .Like import Like
 
@@ -13,6 +13,8 @@ class Post(Base):
     title = Column(String(100), nullable=False)
     content = Column(String(350), nullable=False)
     user_id = Column(String(100), ForeignKey('users.id'))
+    user = relationship('User', back_populates='posts')
+    # user = relationship('User')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     
@@ -20,7 +22,6 @@ class Post(Base):
         select([func.count(Like.id)]).where(Like.post_id == id)
     )
     
-    user = relationship('User', back_populates='posts')
     comments = relationship('Comment', cascade='all,delete')
     likes = relationship('Like', cascade='all,delete')
     
