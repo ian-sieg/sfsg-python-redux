@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify, make_response, session
-from app.models import User
+from app.models import User, Post
 from app.db import get_db
 from datetime import datetime, timedelta
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import uuid
 import sys
+from app.utils.helpers import get_user
 
 # from app.models.User import token_required
 from dotenv import load_dotenv
@@ -23,7 +24,7 @@ def get_users():
     
     for user in users:
         output.append({
-            'public_id': user.public_id,
+            'id': user.id,
             'username': user.username,
             'email': user.email
         })
@@ -41,7 +42,7 @@ def login():
             user = db.query(User).filter(User.email == data['email']).first()
             if user:
                 if user.verify_password(password):
-                    token = create_access_token(identity=user.public_id)
+                    token = create_access_token(identity=user.id)
                     return jsonify({'token': token}), 201
                 else:
                     return jsonify({'error': 'Password is incorrect, please try again'})
@@ -89,7 +90,7 @@ def signup():
     if not user:
         try:
             newUser = User(
-                public_id=str(uuid.uuid4()),
+                id=str(uuid.uuid4()),
                 username=username,
                 email=email,
                 password=password
@@ -103,8 +104,46 @@ def signup():
             return jsonify(message = 'Signup failed'), 500
         
         session.clear()
-        session['user_id'] = newUser.public_id
+        session['user_id'] = newUser.id
         
         return make_response('Successfully registered.', 201)
     else:
         return make_response('User already exists. Please login', 202)
+
+@bp.route('/posts', methods = ['GET'])
+def get_posts():
+    db = get_db()
+    posts = db.query(Post).all()
+    return [{
+            "id": i.id,
+            "title": i.title,
+            "content": i.content,
+            "user_id": i.user_id,
+            'user': get_user(i.user_id)
+    } for i in posts]
+
+@bp.route('/new-post', methods=['POST'])
+def new_post():
+    data = request.get_json()
+    db = get_db()
+
+    title = data['title']
+    content = data['content']
+    user_id = data['user_id']
+    
+    if title and content and user_id:
+        try:
+            user = list(filter(lambda i: i.id == user_id, db.query(User).all()))[0]
+            post = Post(
+                title = title,
+                content = content,
+                user = user
+            )
+            db.add(post)
+            db.commit()
+            return jsonify({'success': 'true'})
+        except Exception as e:
+            print(e)
+            return jsonify({'error': 'Invalid form'})
+    else:
+        return jsonify({'error': 'Please include both a title and content'})
