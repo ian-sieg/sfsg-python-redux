@@ -7,11 +7,11 @@ export default function Login () {
         password: ''
     }) 
 
-    const [registerMsg, setRegisterMsg] = useState({err: ''})
+    const [loginState, setLoginState] = useState({err: ''})
 
     const login = async (e) => {
         e.preventDefault()
-        await fetch("http://localhost:5000/api/login", {
+        await fetch("/api/login", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
@@ -24,9 +24,12 @@ export default function Login () {
             .then((res) => res.json())
             .then((data) => {
                 if (data.error) {
-                    setRegisterMsg({err: data.error})
+                    setLoginState({err: data.error})
                 } else {
-                    setRegisterMsg({'login': true})
+                    localStorage.setItem("token", data.token)
+                    localStorage.setItem('refreshToken', data.refreshToken)
+                    window.location='/'
+                    return setLoginState({login: true})
                 }
             })
     }
@@ -37,8 +40,8 @@ export default function Login () {
                 LOGIN
             </div>
             <div className="w3-container">
-                {registerMsg.err ? (<Alert
-                    message={`Check the form and try again! (${registerMsg.err})`}
+                {loginState.err ? (<Alert
+                    message={`Check the form and try again! (${loginState.err})`}
                 />) : null}
                 <form onSubmit={login}>
                     <p>
@@ -65,7 +68,7 @@ export default function Login () {
                         <button type="submit" class="w3-button w3-blue">
                             Login
                         </button>
-                        {registerMsg.login ? <p>You're logged in!</p> : null}
+                        {loginState.login ? <p>You're logged in!</p> : null}
                     </p>
                 </form>
             </div>

@@ -25,6 +25,9 @@ class Post(Base):
     comments = relationship('Comment', cascade='all,delete')
     likes = relationship('Like', cascade='all,delete')
     
+    def __getitem__(self, key):
+        return self.__dict__[key]
+    
     # def getPosts():
     #     posts = db.query(Post).all()
     #     return [{

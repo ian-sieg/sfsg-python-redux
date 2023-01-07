@@ -13,7 +13,7 @@ export default function Register() {
     const register = (e) => {
         e.preventDefault()
 
-        fetch('http://localhost:5000/api/register', {
+        fetch('/api/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -29,6 +29,8 @@ export default function Register() {
                 if (data.error) {
                     setRegisterMsg({err: data.error})
                 } else {
+                    localStorage.setItem('token', data.token)
+                    window.location='/'
                     setRegisterMsg({'registered': true})
                 }
             })

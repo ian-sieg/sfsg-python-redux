@@ -12,15 +12,16 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Newsfeed from './pages/Newsfeed';
 
+import { checkLogin } from './utils/login';
+
 function App() {
   return (
       <Router>
         <Navbar />
           <Routes>
-            <Route path="/" element={<Home/>} />
+            <Route path="/" element={checkLogin() ? <Newsfeed/> : <Home/>} />
             <Route path="/login" element={<Login/>} />
             <Route path="/register" element={<Register/>} />
-            <Route path='/home' element={<Newsfeed/>} />
           </Routes>
         </Router>
   );

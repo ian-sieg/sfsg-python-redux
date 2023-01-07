@@ -54,26 +54,6 @@ def login():
     except Exception as e:
         print (e)
         return jsonify({'error': 'Invalid form'})
-    
-    # if not data or not data['email'] or not data['password']:
-    #     return jsonify(message = 'Please provide your email and password'), 401
-    
-    # try:
-    #     user = db.query(User).filter(User.email == data['email']).one()
-    # except:
-    #     print(sys.exc_info())
-    #     return jsonify(message = 'There is no account with that email. Please signup to continue'), 401
-
-    # if user.verify_password(data['password']) == False:
-    #     return jsonify(message = 'Incorrect password'), 403
-    # else:
-    #     token = create_access_token(identity=user["id"])
-    #     return jsonify({"token": token})
-    # session.clear()
-    # session['user_id'] = user.public_id
-    # session['loggedIn'] = True
-    
-    # return jsonify(message = 'You have been logged in!'), 201
 
 @bp.route('/register', methods = ['POST'])
 def signup():
@@ -96,6 +76,7 @@ def signup():
                 email=email,
                 password=password
             )
+            token = create_access_token(identity=newUser.id)
             db.add(newUser)
             db.commit()
         
@@ -107,7 +88,7 @@ def signup():
         session.clear()
         session['user_id'] = newUser.id
         
-        return make_response('Successfully registered.', 201)
+        return jsonify({'token': token}), 201
     else:
         return make_response('User already exists. Please login', 202)
 
@@ -120,10 +101,13 @@ def get_posts():
             "title": i.title,
             "content": i.content,
             "user_id": i.user_id,
-            'user': get_user(i.user_id)
+            'user': get_user(i.user_id),
+            'created_at': i.created_at,
+            'updated_at': i.updated_at
     } for i in posts]
 
 @bp.route('/post/new', methods=['POST'])
+@jwt_required()
 def new_post():
     data = request.get_json()
     db = get_db()
@@ -136,9 +120,9 @@ def new_post():
         try:
             user = list(filter(lambda i: i.id == user_id, db.query(User).all()))[0]
             post = Post(
-                title,
-                content,
-                user
+                title=title,
+                content=content,
+                user=user
             )
             db.add(post)
             db.commit()
@@ -150,7 +134,8 @@ def new_post():
         return jsonify({'error': 'Please include both a title and content'})
 
 @bp.route('/post/<id>', methods=['PUT', 'DELETE'])
-def POSTS(id):
+@jwt_required()
+def posts(id):
     method = request.method
     db = get_db()
     
@@ -169,19 +154,12 @@ def POSTS(id):
             post = db.query(Post).filter(Post.id == id).one()
             if post:
                 data = request.get_json()
-
                 title = data['title']
                 content = data['content']
                 user_id = data['user_id']
-                user = list(filter(lambda i: i.id == user_id, db.query(User).all()))[0]
-                
-                post = Post(
-                    id,
-                    title,
-                    content,
-                    user
-                )
-                db.add(post)
+                # TODO: add authentication so only the user with their id stored in the session can == post.user_id
+                post.title = title
+                post.content = content
                 db.commit()
                 return jsonify({'success': 'true'})
             else:
