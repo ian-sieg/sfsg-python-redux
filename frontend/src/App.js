@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import logo from './logo.svg';
@@ -9,19 +9,25 @@ import './App.css';
 import Home from './components/Home'
 import Navbar from './components/Navbar'
 import Login from './components/Login';
+import Logout from './components/Logout';
 import Register from './components/Register';
 import Newsfeed from './pages/Newsfeed';
 
 import { checkLogin } from './utils/login';
 
 function App() {
+  const [login, setLogin] = useState(false)
+
+  checkLogin().then(res => setLogin(res))
+
   return (
       <Router>
         <Navbar />
           <Routes>
-            <Route path="/" element={checkLogin() ? <Newsfeed/> : <Home/>} />
+            <Route path="/" element={login ? <Newsfeed/> : <Home/>} />
             <Route path="/login" element={<Login/>} />
             <Route path="/register" element={<Register/>} />
+            <Route path='/logout' element={<Logout/>} />
           </Routes>
         </Router>
   );

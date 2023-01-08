@@ -2,10 +2,13 @@ from flask import Blueprint, request, jsonify, make_response, session
 from app.models import User, Post
 from app.db import get_db
 from datetime import datetime, timedelta
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import uuid
 import sys
 from app.utils.helpers import get_user, get_user_posts
+
+# TODO: add somewhere either server or in models
+# import re
+# if not re.match(r"[\w\._]{5,}@\w{3,}.\w{2,4}", email):
 
 # from app.models.User import token_required
 from dotenv import load_dotenv
@@ -43,8 +46,7 @@ def login():
             user = db.query(User).filter(User.email == data['email']).first()
             if user:
                 if user.verify_password(password):
-                    token = create_access_token(identity=user.id)
-                    return jsonify({'token': token}), 201
+                    return jsonify({'message': 'Logged In!'}), 201
                 else:
                     return jsonify({'error': 'Password is incorrect, please try again'})
             else:
@@ -76,7 +78,6 @@ def signup():
                 email=email,
                 password=password
             )
-            token = create_access_token(identity=newUser.id)
             db.add(newUser)
             db.commit()
         
@@ -88,7 +89,7 @@ def signup():
         session.clear()
         session['user_id'] = newUser.id
         
-        return jsonify({'token': token}), 201
+        return jsonify({'message': 'Registered!'}), 201
     else:
         return make_response('User already exists. Please login', 202)
 
@@ -107,7 +108,6 @@ def get_posts():
     } for i in posts]
 
 @bp.route('/post/new', methods=['POST'])
-@jwt_required()
 def new_post():
     data = request.get_json()
     db = get_db()
@@ -134,7 +134,6 @@ def new_post():
         return jsonify({'error': 'Please include both a title and content'})
 
 @bp.route('/post/<id>', methods=['PUT', 'DELETE'])
-@jwt_required()
 def posts(id):
     method = request.method
     db = get_db()

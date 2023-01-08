@@ -1,11 +1,12 @@
 from app.db import Base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, String
 from sqlalchemy.orm import validates, relationship
+from flask_login import UserMixin
 import bcrypt
 salt = bcrypt.gensalt()
 
 
-class User(Base):
+class User(UserMixin, Base):
     __tablename__ = 'users'
     id = Column(String(100), primary_key=True)
     username = Column(String(50), nullable=False, unique=True)

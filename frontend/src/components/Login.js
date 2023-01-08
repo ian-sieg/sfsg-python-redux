@@ -1,5 +1,6 @@
-import React, {useState} from "react"
+import React, {useState, useEffect} from "react"
 import Alert from "./Alert"
+import { checkLogin } from "../utils/login"
 
 export default function Login () {
     const [formData, setFormData] = useState({
@@ -8,6 +9,19 @@ export default function Login () {
     }) 
 
     const [loginState, setLoginState] = useState({err: ''})
+
+    useEffect(() => {
+        async function check() {
+            await checkLogin()
+            .then((res) => {
+                if (res) {
+                    window.location = '/'
+                }
+            })
+        }
+
+        check()
+    },[])
 
     const login = async (e) => {
         e.preventDefault()
@@ -26,8 +40,6 @@ export default function Login () {
                 if (data.error) {
                     setLoginState({err: data.error})
                 } else {
-                    localStorage.setItem("token", data.token)
-                    localStorage.setItem('refreshToken', data.refreshToken)
                     window.location='/'
                     return setLoginState({login: true})
                 }
