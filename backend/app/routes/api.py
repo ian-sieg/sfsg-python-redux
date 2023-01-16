@@ -2,9 +2,9 @@ from flask import Blueprint, request, jsonify, make_response, session
 from app.models import User, Post
 from app.db import get_db
 from datetime import datetime, timedelta
-import uuid
 import sys
 from app.utils.helpers import get_user, get_user_posts
+from app.utils.auth import login_required
 
 # TODO: add somewhere either server or in models
 # import re
@@ -43,9 +43,11 @@ def login():
     password = data['password']
     try:
         if (email and password):
-            user = db.query(User).filter(User.email == data['email']).first()
+            user = db.query(User).filter(User.email == email).first()
             if user:
                 if user.verify_password(password):
+                    session['user_id'] = user.id
+                    session['loggedIn'] = True
                     return jsonify({'message': 'Logged In!'}), 201
                 else:
                     return jsonify({'error': 'Password is incorrect, please try again'})
@@ -56,6 +58,11 @@ def login():
     except Exception as e:
         print (e)
         return jsonify({'error': 'Invalid form'})
+
+@bp.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return 'logged out', 204
 
 @bp.route('/register', methods = ['POST'])
 def signup():
@@ -73,7 +80,6 @@ def signup():
     if not user:
         try:
             newUser = User(
-                id=str(uuid.uuid4()),
                 username=username,
                 email=email,
                 password=password
@@ -88,7 +94,7 @@ def signup():
         
         session.clear()
         session['user_id'] = newUser.id
-        
+        session['loggedIn'] = True
         return jsonify({'message': 'Registered!'}), 201
     else:
         return make_response('User already exists. Please login', 202)
@@ -114,7 +120,7 @@ def new_post():
 
     title = data['title']
     content = data['content']
-    user_id = data['user_id']
+    user_id = session.get('user_id')
     
     if title and content and user_id:
         try:
@@ -155,10 +161,11 @@ def posts(id):
                 data = request.get_json()
                 title = data['title']
                 content = data['content']
-                user_id = data['user_id']
+                user_id = session.get('user_id')
                 # TODO: add authentication so only the user with their id stored in the session can == post.user_id
                 post.title = title
                 post.content = content
+                post.user_id = user_id
                 db.commit()
                 return jsonify({'success': 'true'})
             else:

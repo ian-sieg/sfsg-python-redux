@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_cors import CORS
-from flask_login import LoginManager
 from .routes import api
 from .db import init_db
 from dotenv import load_dotenv
@@ -16,7 +15,6 @@ def create_app(test_config=None):
     app.config["SECRET_KEY"] = secret
     
     CORS(app)
-    login = LoginManager(app)
     
     app.register_blueprint(api)    
     
@@ -26,6 +24,3 @@ def create_app(test_config=None):
     
     init_db(app)
     return app
-
-# if __name__ == "__main__":
-#     app.run(debug=True)

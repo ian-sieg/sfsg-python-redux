@@ -12,7 +12,7 @@ class Post(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(100), nullable=False)
     content = Column(String(350), nullable=False)
-    user_id = Column(String(100), ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship('User', back_populates='posts')
     # user = relationship('User')
     created_at = Column(DateTime, default=datetime.now)

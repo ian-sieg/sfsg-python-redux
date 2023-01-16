@@ -7,7 +7,6 @@ const checkLogin = async () => {
                 Authorization: `Bearer ${token}`
             }
         })
-        // TODO: change to normal fetch.then() once it works
         const {data} = await res
         return data.success
     } catch (e) {
