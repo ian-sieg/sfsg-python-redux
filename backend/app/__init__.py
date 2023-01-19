@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from .routes import api
+from .routes import users, posts
 from .db import init_db
 from dotenv import load_dotenv
 from os import getenv
@@ -16,7 +16,8 @@ def create_app(test_config=None):
     
     CORS(app)
     
-    app.register_blueprint(api)    
+    app.register_blueprint(users)
+    app.register_blueprint(posts)    
     
     @app.route('/')
     def index():
